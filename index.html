@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Campus Cafe Billing System</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f2f2f2; padding: 20px; }
+        .box { max-width: 500px; background: white; margin: auto; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #333; }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; }
+        input[type="text"], input[type="email"], input[type="number"] { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        table { width: 100%; margin-top: 15px; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #4CAF50; color: white; }
+        .btn { width: 100%; background-color: #4CAF50; color: white; padding: 10px; border: none; font-size: 16px; border-radius: 4px; cursor: pointer; margin-top: 15px; }
+        .btn:hover { background-color: #45a049; }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <h2>Campus Cafe Order Form</h2>
+
+    <form action="http://localhost:8080/order" method="POST">
+
+        <div class="input-group">
+            <label>Customer Name:</label>
+            <input type="text" name="name" required placeholder="Enter your name">
+        </div>
+
+        <div class="input-group">
+            <label>Customer Email:</label>
+            <input type="email" name="email" required placeholder="Enter your email">
+        </div>
+
+        <div class="input-group">
+            <label>Table Number:</label>
+            <input type="number" name="tableNo" required min="1" max="20" placeholder="Enter table number">
+        </div>
+
+        <h3>Menu Items</h3>
+        <table>
+            <tr>
+                <th>Select</th>
+                <th>Item Name</th>
+                <th>Price (₹)</th>
+            </tr>
+            <tr>
+                <td><input type="checkbox" name="food" value="Cold Coffee - 80"></td>
+                <td>Cold Coffee</td>
+                <td>80</td>
+            </tr>
+            <tr>
+                <td><input type="checkbox" name="food" value="Veg Burger - 70"></td>
+                <td>Veg Burger</td>
+                <td>70</td>
+            </tr>
+            <tr>
+                <td><input type="checkbox" name="food" value="French Fries - 60"></td>
+                <td>French Fries</td>
+                <td>60</td>
+            </tr>
+            <tr>
+                <td><input type="checkbox" name="food" value="Cheese Pizza - 150"></td>
+                <td>Cheese Pizza</td>
+                <td>150</td>
+            </tr>
+        </table>
+
+        <button type="submit" class="btn">Place Order & Send Bill</button>
+    </form>
+</div>
+
+</body>
+</html>
