@@ -14,31 +14,46 @@ import javax.mail.internet.*;
 
 public class CafeServer {
 
-
-    private static final String OWNER_EMAIL = "sayalisatpute22@gmail.com";
-    private static final String OWNER_PASS = "abcdefghijkl"; // Sequrity reason i put here dummy code
-    // Put your 16-digit Gmail App Password here
+    // Fetch credentials securely from environment variables (Safe for GitHub & Cloud)
+    private static final String OWNER_EMAIL = System.getenv("CAFE_EMAIL");
+    private static final String OWNER_PASS = System.getenv("CAFE_PASSWORD");
     private static final String KITCHEN_EMAIL = "satputesayali20.01.2004@gmail.com";
 
     public static void main(String[] args) throws IOException {
+        // Cloud platforms (like Render) assign a dynamic PORT. Fallback to 8080 for local testing.
+        int port = 8080;
+        String portEnv = System.getenv("PORT");
+        if (portEnv != null && !portEnv.isEmpty()) {
+            port = Integer.parseInt(portEnv);
+        }
 
-        HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
+        HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
         server.createContext("/order", new MyOrderHandler());
         server.setExecutor(null);
 
-        System.out.println("Server started successfully at http://localhost:8080");
+        System.out.println("Server started successfully on port " + port);
         server.start();
     }
 
     static class MyOrderHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
+
+            // Enable CORS headers so your Vercel frontend can talk to this backend
+            exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+            exchange.getResponseHeaders().add("Access-Control-Allow-Methods", "POST, OPTIONS");
+            exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
+
+            if ("OPTIONS".equalsIgnoreCase(exchange.getRequestMethod())) {
+                exchange.sendResponseHeaders(204, -1);
+                return;
+            }
+
             if ("POST".equalsIgnoreCase(exchange.getRequestMethod())) {
 
-
+                // Read data coming from HTML form
                 InputStream inputStream = exchange.getRequestBody();
                 String formData = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-
 
                 String customerName = "";
                 String customerEmail = "";
@@ -46,7 +61,7 @@ public class CafeServer {
                 String orderedItemsText = "";
                 double totalBill = 0.0;
 
-
+                // Split form parameters
                 String[] pairs = formData.split("&");
                 for (String pair : pairs) {
                     String[] keyValue = pair.split("=");
@@ -58,9 +73,8 @@ public class CafeServer {
                         if (key.equals("email")) customerEmail = val;
                         if (key.equals("tableNo")) tableNo = val;
 
-
+                        // If user selected food items
                         if (key.equals("food")) {
-                            // Example format: "Cold Coffee - 80"
                             String[] itemParts = val.split("-");
                             String itemName = itemParts[0].trim();
                             double price = Double.parseDouble(itemParts[1].trim());
@@ -73,12 +87,13 @@ public class CafeServer {
 
                 System.out.println("New order received from: " + customerName + " for Table " + tableNo);
 
+                // 1. Send Email to Kitchen Counter
                 sendEmailToKitchen(customerName, tableNo, orderedItemsText, totalBill);
 
-
+                // 2. Send Email to Customer with Bill and QR Code image
                 sendEmailToCustomer(customerEmail, customerName, tableNo, orderedItemsText, totalBill);
 
-
+                // Response page shown in browser after ordering
                 String responseHtml = "<html><body style='text-align:center; font-family:Arial; margin-top:50px;'>"
                         + "<h1 style='color:green;'>Order Placed Successfully!</h1>"
                         + "<p>Thank you <b>" + customerName + "</b>. Your order for <b>Table " + tableNo + "</b> has been sent.</p>"
@@ -96,6 +111,7 @@ public class CafeServer {
         }
     }
 
+    // Method to send email to Kitchen
     public static void sendEmailToKitchen(String customerName, String tableNo, String items, double total) {
         String subject = "New Order - Table No: " + tableNo;
         String messageBody = "Hello Kitchen Team,\n\n"
@@ -108,14 +124,13 @@ public class CafeServer {
         sendMailUtil(KITCHEN_EMAIL, subject, messageBody, false);
     }
 
-
+    // Method to send email to Customer with QR Code image
     public static void sendEmailToCustomer(String recipientEmail, String customerName, String tableNo, String items, double total) {
-        String subject = "Your Cafe Bill & Payment QR Code";
+        String subject = "Your Cafe Bill ";
 
-        // Dummy QR code API link generating a QR code image
-//        String qrImageUrl = "https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=Pay-Rs-" + total + "-For-Table-" + tableNo;
-// Replace this with your actual uploaded QR code image URL
-        //String qrImageUrl = "https://i.imgur.com/YourRealQRCodeImage.png";
+        // Replace with your direct image link from Postimages or Imgur
+      //  String qrImageUrl = "PASTE_YOUR_DIRECT_IMAGE_LINK_HERE.png";
+
         String htmlBody = "<html><body style='font-family: Arial;'>"
                 + "<h2>Hello " + customerName + ",</h2>"
                 + "<p>Thank you for visiting Campus Cafe! Here is your bill summary:</p>"
@@ -124,15 +139,15 @@ public class CafeServer {
                 + "<p><b>Ordered Items:</b><br><pre>" + items + "</pre></p>"
                 + "<h3 style='color: red;'>Total Bill: Rs. " + total + "</h3>"
                 + "<br>"
-               // + "<p><b>Scan below QR code to pay your bill:</b></p>"
-              //  + "<img src='" + qrImageUrl + "' alt='Payment QR Code'>"
+              //  + "<p><b>Scan below QR code to pay your bill:</b></p>"
+             //   + "<img src='" + qrImageUrl + "' alt='Cafe Payment QR Code' width='200' height='200'>"
                 + "<br><p>Regards,<br><b>Campus Cafe Team</b></p>"
                 + "</body></html>";
 
         sendMailUtil(recipientEmail, subject, htmlBody, true);
     }
 
-
+    // Common helper method to send emails using JavaMail
     public static void sendMailUtil(String toEmail, String subject, String content, boolean isHtml) {
         Properties props = new Properties();
         props.put("mail.smtp.host", "smtp.gmail.com");
