@@ -16,7 +16,7 @@ public class CafeServer {
 
 
     private static final String OWNER_EMAIL = "sayalisatpute22@gmail.com";
-    private static final String OWNER_PASS = "abcdefghijklmnop"; // sequrity reason i put dummy password
+    private static final String OWNER_PASS = "bcxjrloylxdljnsw"; // sequrity reason i put dummy password
     // Put your 16-digit Gmail App Password here
     private static final String KITCHEN_EMAIL = "satputesayali20.01.2004@gmail.com";
 
